@@ -265,7 +265,7 @@ class WindowUtama():
         self.statusbar.setObjectName("statusbar")
         self.MainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(self.MainWindow)
+        self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self.MainWindow)
 
     def retranslateUi(self):

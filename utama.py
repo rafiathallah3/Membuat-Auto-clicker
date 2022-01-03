@@ -1,8 +1,8 @@
-import sys
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, threading, time
 
 from pynput.keyboard import Key, Listener, KeyCode
+from pynput.mouse import Controller
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class KeyMonitor(QtCore.QObject):
     keyPressed = QtCore.pyqtSignal(KeyCode)
@@ -20,13 +20,37 @@ class KeyMonitor(QtCore.QObject):
     def start_monitoring(self):
         self.listener.start()
 
+class MouseKlik(threading.Thread):
+    def __init__(self, mouseController, **kwargs):
+        super(MouseKlik, self).__init__()
+        self.mouseController = mouseController
+        self.delay = kwargs["delay"]
+        self.tombol = kwargs["tombol"]
+        self.tipeklik = kwargs["tipeklik"]
+        self.UlangSampaiBerhenti = kwargs["UlangSampaiBerhenti"]
+        self.UlangBerapaKali = kwargs["UlangBerapaKali"]
+        self.LokasiSama = kwargs["LokasiSama"]
+        self.PosisiMouse = kwargs["PosisiMouse"]
+
+    def mulai(self):
+        while self.UlangSampaiBerhenti:
+            time.sleep(self.delay)
+            if not self.LokasiSama: self.mouseController.position = self.PosisiMouse
+            self.mouseController.click(self.tombol, 2 if self.tipeklik == "Dua kali" else 1)
+
+    def stop(self):
+        self.UlangSampaiBerhenti = False
+
 
 class WindowUtama():
-    def __init__(self, MainWindow: QtWidgets.QMainWindow):
+    def __init__(self, MainWindow: QtWidgets.QMainWindow, MosController):
         self.MainWindow = MainWindow
+        self.MosController = MosController
+        self.threadMouse = None
+
         self._Mulai = False
         self.data = {
-            "WaktuKlik": [0, 0, 0, 100], #Jam menit detik milidetik
+            "WaktuKlik": [0, 0, 0, .1], #Jam menit detik milidetik
             "Opsi": {
                 "TombolMouse": "Kiri",
                 "TipeMouse": "Sekali"
@@ -47,18 +71,37 @@ class WindowUtama():
 
     def selesaiInputWaktu(self):
         def DeteksiInput(InputEdit: QtWidgets.QLineEdit) -> str:
-            if not InputEdit.text() or not InputEdit.text().isdecimal(): return "0"
-            return str(int(InputEdit.text())) # Kalau ada nol di character pertama maka dihilangin dengan int function
+            if not InputEdit.text() or not InputEdit.text().isdecimal(): return 0
+            return int(InputEdit.text()) # Kalau ada nol di character pertama maka dihilangin dengan int function
 
         for i,v in enumerate([self.waktuJamInput, self.waktuMenitInput, self.waktuDetikInput, self.waktuMilidetikInput]):
             hasil = DeteksiInput(v)
             self.data["WaktuKlik"][i] = hasil
-            v.setText(hasil)
+            v.setText(str(hasil))
+
+        self.data["WaktuKlik"][3] = 100 if self.data["WaktuKlik"][3] < 100 else self.data["WaktuKlik"][3]
+        self.waktuMilidetikInput.setText(str(self.data["WaktuKlik"][3]))
+
+        self.data["WaktuKlik"][3] = float("."+str(self.data["WaktuKlik"][3]))
 
     def OpsiComboBox(self):
         self.data["Opsi"]["TombolMouse"] = self.TombolMouseComboBox.currentText()
         self.data["Opsi"]["TipeMouse"] = self.TipeMouseComboBox.currentText()
-        print(self.data["Opsi"])
+
+    def radioUlangValueChanged(self):
+        self.data["Perulangan"]["DiulangSampaiBerhenti"] = self.radioUlangBerhenti.isChecked()
+        self.data["Perulangan"]["BerapaKaliUlang"] = self.berapaKaliUlang.value()
+
+    def radioLokasiValueChanged(self):
+        def DeteksiInput(EditPosisi: list[QtWidgets.QLineEdit]) -> list[QtWidgets.QLineEdit]:
+            for i,v in enumerate(EditPosisi):
+                EditPosisi[i] = 0 if not v.text() or not v.text().isdecimal() else str(int(v.text()))
+
+            return EditPosisi
+
+        self.data["Posisi"]["LokasiSama"] = self.radioLokasiSama.isChecked()
+        self.data["Posisi"]["PosisiLokasi"] = DeteksiInput([self.EditPosisiX, self.EditPosisiY])
+
 
     def keyMonitorFunc(self, key):
         if key == Key.f7.value:
@@ -72,6 +115,32 @@ class WindowUtama():
     def Mulai(self, value):
         self.TombolMulai.setEnabled(not value)
         self.TombolStop.setEnabled(value)
+
+        if value:
+            delay = self.data["WaktuKlik"][0]**60 + self.data["WaktuKlik"][1]*60 + self.data["WaktuKlik"][2] + self.data["WaktuKlik"][3]
+            tombol = self.data["Opsi"]["TombolMouse"]
+            tipeklik = self.data["Opsi"]["TipeMouse"]
+            UlangSampaiBerhenti = self.data["Perulangan"]["DiulangSampaiBerhenti"]
+            UlangBerapaKali = self.data["Perulangan"]["BerapaKaliUlang"]
+            LokasiSama = self.data["Posisi"]["LokasiSama"]
+            PosisiMouse = self.data["Posisi"]["PosisiLokasi"]
+
+            self.threadMouse = MouseKlik(
+                self.MosController,
+                delay=delay,
+                tombol=tombol,
+                tipeklik=tipeklik, 
+                UlangSampaiBerhenti=UlangSampaiBerhenti, 
+                UlangBerapaKali=UlangBerapaKali, 
+                LokasiSama=LokasiSama, 
+                PosisiMouse=PosisiMouse
+            )
+            self.threadMouse.start()
+            self.threadMouse.mulai()
+        else:
+            if self.threadMouse is not None:
+                self.threadMouse.stop()
+                self.threadMouse = None
 
         self._Mulai = value
 
@@ -219,6 +288,7 @@ class WindowUtama():
         self.EditPosisiX = QtWidgets.QLineEdit(self.groupBox_4)
         self.EditPosisiX.setGeometry(QtCore.QRect(412, 30, 41, 20))
         self.EditPosisiX.setObjectName("EditPosisiX")
+        self.EditPosisiX.setMaxLength(3)
         
         self.labelX = QtWidgets.QLabel(self.groupBox_4)
         self.labelX.setGeometry(QtCore.QRect(390, 30, 21, 16))
@@ -233,6 +303,7 @@ class WindowUtama():
         self.EditPosisiY = QtWidgets.QLineEdit(self.groupBox_4)
         self.EditPosisiY.setGeometry(QtCore.QRect(480, 30, 41, 20))
         self.EditPosisiY.setObjectName("EditPosisiY")
+        self.EditPosisiY.setMaxLength(3)
         
         font = QtGui.QFont()
         font.setFamily("Ebrima")
@@ -315,6 +386,11 @@ class WindowUtama():
         self.TombolMouseComboBox.activated.connect(self.OpsiComboBox)
         self.TipeMouseComboBox.activated.connect(self.OpsiComboBox)
 
+        self.radioUlang.toggled.connect(self.radioUlangValueChanged)
+        self.radioUlangBerhenti.toggled.connect(self.radioUlangValueChanged)
+
+        self.radioLokasiSama.toggled.connect(self.radioLokasiValueChanged)
+
         self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
         self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))
 
@@ -322,8 +398,9 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
+    mosController = Controller()
 
-    ui = WindowUtama(MainWindow)
+    ui = WindowUtama(MainWindow, mosController)
     ui.setupUi()
 
     MainWindow.show()

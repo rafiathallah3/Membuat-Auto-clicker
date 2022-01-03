@@ -1,0 +1,267 @@
+import sys
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from pynput.keyboard import Key, Listener, KeyCode
+
+class KeyMonitor(QtCore.QObject):
+    keyPressed = QtCore.pyqtSignal(KeyCode)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.listener = Listener(on_release=self.on_release)
+
+    def on_release(self, key):
+        self.keyPressed.emit(key.value if hasattr(key, 'value') else key)
+
+    def stop_monitoring(self):
+        self.listener.stop()
+
+    def start_monitoring(self):
+        self.listener.start()
+
+
+class WindowUtama():
+    def __init__(self, MainWindow: QtWidgets.QMainWindow):
+        self.MainWindow = MainWindow
+        self._Mulai = False
+        self.data = {
+            "WaktuKlik": [0, 0, 0, 100], #Jam menit detik milidetik
+            "Opsi": {
+                "TombolMouse": "Kiri",
+                "TipeMouse": "Sekali"
+            },
+            "Perulangan": {
+                "Diulang": True,
+                "BerapaKaliUlang": 1
+            },
+            "Posisi": {
+                "LokasiSama": True,
+                "PosisiLokasi": [0,0]
+            }
+        }
+
+        self.monitor = KeyMonitor()
+        self.monitor.keyPressed.connect(self.keyMonitorFunc)
+        self.monitor.start_monitoring()
+
+    def keyMonitorFunc(self, key):
+        if key == Key.f7.value:
+            print("yes")
+
+    @property
+    def Mulai(self):
+        return self._Mulai
+
+    @Mulai.setter
+    def Mulai(self, value):
+        self.TombolMulai.setEnabled(not value)
+        self.TombolStop.setEnabled(value)
+
+        self._Mulai = value
+
+    def setupUi(self):
+        self.MainWindow.setObjectName("MainWindow")
+        self.MainWindow.resize(569, 469)
+        self.MainWindow.setFixedSize(self.MainWindow.size())
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("ui\\../icon/mouse.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.MainWindow.setWindowIcon(icon)
+        self.centralwidget = QtWidgets.QWidget(self.MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBox.setGeometry(QtCore.QRect(20, 10, 531, 71))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(10)
+        self.groupBox.setFont(font)
+        self.groupBox.setObjectName("groupBox")
+        self.waktuJamInput = QtWidgets.QLineEdit(self.groupBox)
+        self.waktuJamInput.setGeometry(QtCore.QRect(40, 30, 51, 21))
+        self.waktuJamInput.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.waktuJamInput.setObjectName("waktuJamInput")
+        self.waktuJamLabel = QtWidgets.QLabel(self.groupBox)
+        self.waktuJamLabel.setGeometry(QtCore.QRect(90, 30, 47, 21))
+        self.waktuJamLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.waktuJamLabel.setObjectName("waktuJamLabel")
+        self.waktuMenitInput = QtWidgets.QLineEdit(self.groupBox)
+        self.waktuMenitInput.setGeometry(QtCore.QRect(160, 30, 51, 21))
+        self.waktuMenitInput.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.waktuMenitInput.setObjectName("waktuMenitInput")
+        self.waktuMenitLabel = QtWidgets.QLabel(self.groupBox)
+        self.waktuMenitLabel.setGeometry(QtCore.QRect(210, 30, 47, 21))
+        self.waktuMenitLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.waktuMenitLabel.setObjectName("waktuMenitLabel")
+        self.waktuDetikInput = QtWidgets.QLineEdit(self.groupBox)
+        self.waktuDetikInput.setGeometry(QtCore.QRect(280, 30, 51, 21))
+        self.waktuDetikInput.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.waktuDetikInput.setObjectName("waktuDetikInput")
+        self.waktuDetikLabel = QtWidgets.QLabel(self.groupBox)
+        self.waktuDetikLabel.setGeometry(QtCore.QRect(330, 30, 47, 21))
+        self.waktuDetikLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.waktuDetikLabel.setObjectName("waktuDetikLabel")
+        self.waktuMilidetikInput = QtWidgets.QLineEdit(self.groupBox)
+        self.waktuMilidetikInput.setGeometry(QtCore.QRect(400, 30, 51, 21))
+        self.waktuMilidetikInput.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.waktuMilidetikInput.setObjectName("waktuMilidetikInput")
+        self.waktuMilidetiLabel = QtWidgets.QLabel(self.groupBox)
+        self.waktuMilidetiLabel.setGeometry(QtCore.QRect(450, 30, 61, 21))
+        self.waktuMilidetiLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.waktuMilidetiLabel.setObjectName("waktuMilidetiLabel")
+        self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBox_2.setGeometry(QtCore.QRect(20, 90, 241, 131))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(10)
+        self.groupBox_2.setFont(font)
+        self.groupBox_2.setObjectName("groupBox_2")
+        self.TombolMauseLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.TombolMauseLabel.setGeometry(QtCore.QRect(20, 30, 91, 16))
+        self.TombolMauseLabel.setObjectName("TombolMauseLabel")
+        self.TombolMouseComboBox = QtWidgets.QComboBox(self.groupBox_2)
+        self.TombolMouseComboBox.setGeometry(QtCore.QRect(150, 30, 71, 22))
+        self.TombolMouseComboBox.setObjectName("TombolMouseComboBox")
+        self.TombolMouseComboBox.addItem("")
+        self.TombolMouseComboBox.addItem("")
+        self.TipeMouseLabel = QtWidgets.QLabel(self.groupBox_2)
+        self.TipeMouseLabel.setGeometry(QtCore.QRect(20, 70, 91, 16))
+        self.TipeMouseLabel.setObjectName("TipeMouseLabel")
+        self.TipeMouseComboBox = QtWidgets.QComboBox(self.groupBox_2)
+        self.TipeMouseComboBox.setGeometry(QtCore.QRect(150, 70, 71, 22))
+        self.TipeMouseComboBox.setObjectName("TipeMouseComboBox")
+        self.TipeMouseComboBox.addItem("")
+        self.TipeMouseComboBox.addItem("")
+        self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBox_3.setGeometry(QtCore.QRect(310, 90, 241, 131))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(10)
+        self.groupBox_3.setFont(font)
+        self.groupBox_3.setObjectName("groupBox_3")
+        self.radioUlang = QtWidgets.QRadioButton(self.groupBox_3)
+        self.radioUlang.setGeometry(QtCore.QRect(20, 30, 82, 17))
+        self.radioUlang.setObjectName("radioUlang")
+        self.radioUlang.setChecked(True)
+        self.radioUlangBerhenti = QtWidgets.QRadioButton(self.groupBox_3)
+        self.radioUlangBerhenti.setGeometry(QtCore.QRect(20, 70, 161, 17))
+        self.radioUlangBerhenti.setObjectName("radioUlangBerhenti")
+        self.berapaKaliUlang = QtWidgets.QSpinBox(self.groupBox_3)
+        self.berapaKaliUlang.setGeometry(QtCore.QRect(100, 30, 42, 22))
+        self.berapaKaliUlang.setObjectName("berapaKaliUlang")
+        self.berapaKaliUlang.setValue(1)
+        self.berapaKaliLabel = QtWidgets.QLabel(self.groupBox_3)
+        self.berapaKaliLabel.setGeometry(QtCore.QRect(150, 30, 47, 21))
+        self.berapaKaliLabel.setObjectName("berapaKaliLabel")
+        self.groupBox_4 = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBox_4.setGeometry(QtCore.QRect(20, 230, 531, 71))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(10)
+        self.groupBox_4.setFont(font)
+        self.groupBox_4.setObjectName("groupBox_4")
+        self.radioLokasiSama = QtWidgets.QRadioButton(self.groupBox_4)
+        self.radioLokasiSama.setGeometry(QtCore.QRect(10, 30, 91, 17))
+        self.radioLokasiSama.setObjectName("radioButton")
+        self.radioLokasiSama.setChecked(True)
+        self.radioPilihLokasi = QtWidgets.QRadioButton(self.groupBox_4)
+        self.radioPilihLokasi.setGeometry(QtCore.QRect(280, 27, 20, 20))
+        self.radioPilihLokasi.setText("")
+        self.radioPilihLokasi.setObjectName("radioPilihLokasi")
+        self.TombolPilihLokasi = QtWidgets.QPushButton(self.groupBox_4)
+        self.TombolPilihLokasi.setGeometry(QtCore.QRect(300, 20, 81, 41))
+        self.TombolPilihLokasi.setObjectName("TombolPilihLokasi")
+        self.EditPosisiX = QtWidgets.QLineEdit(self.groupBox_4)
+        self.EditPosisiX.setGeometry(QtCore.QRect(412, 30, 41, 20))
+        self.EditPosisiX.setObjectName("EditPosisiX")
+        self.labelX = QtWidgets.QLabel(self.groupBox_4)
+        self.labelX.setGeometry(QtCore.QRect(390, 30, 21, 16))
+        self.labelX.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelX.setObjectName("labelX")
+        self.labelY = QtWidgets.QLabel(self.groupBox_4)
+        self.labelY.setGeometry(QtCore.QRect(458, 30, 21, 16))
+        self.labelY.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelY.setObjectName("labelY")
+        self.EditPosisiY = QtWidgets.QLineEdit(self.groupBox_4)
+        self.EditPosisiY.setGeometry(QtCore.QRect(480, 30, 41, 20))
+        self.EditPosisiY.setObjectName("EditPosisiY")
+        self.TombolMulai = QtWidgets.QPushButton(self.centralwidget)
+        self.TombolMulai.setGeometry(QtCore.QRect(20, 310, 241, 51))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(12)
+        self.TombolMulai.setFont(font)
+        self.TombolMulai.setObjectName("TombolMulai")
+        self.TombolStop = QtWidgets.QPushButton(self.centralwidget)
+        self.TombolStop.setGeometry(QtCore.QRect(310, 310, 241, 51))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(12)
+        self.TombolStop.setFont(font)
+        self.TombolStop.setObjectName("TombolStop")
+        self.TombolStop.setEnabled(False)
+        self.TombolSettingHotkey = QtWidgets.QPushButton(self.centralwidget)
+        self.TombolSettingHotkey.setGeometry(QtCore.QRect(20, 370, 241, 51))
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(12)
+        self.TombolSettingHotkey.setFont(font)
+        self.TombolSettingHotkey.setObjectName("TombolSettingHotkey")
+        self.MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(self.MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 569, 21))
+        self.menubar.setObjectName("menubar")
+        self.MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(self.MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        self.MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(self.MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(self.MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "Auto Clicker"))
+        self.groupBox.setTitle(_translate("MainWindow", "Waktu Klik"))
+        self.waktuJamInput.setText(_translate("MainWindow", "0"))
+        self.waktuJamLabel.setText(_translate("MainWindow", "Jam"))
+        self.waktuMenitInput.setText(_translate("MainWindow", "0"))
+        self.waktuMenitLabel.setText(_translate("MainWindow", "Menit"))
+        self.waktuDetikInput.setText(_translate("MainWindow", "0"))
+        self.waktuDetikLabel.setText(_translate("MainWindow", "Detik"))
+        self.waktuMilidetikInput.setText(_translate("MainWindow", "100"))
+        self.waktuMilidetiLabel.setText(_translate("MainWindow", "mili detik"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "Opsi"))
+        self.TombolMauseLabel.setText(_translate("MainWindow", "Tombol Mause"))
+        self.TombolMouseComboBox.setItemText(0, _translate("MainWindow", "Kiri"))
+        self.TombolMouseComboBox.setItemText(1, _translate("MainWindow", "Kanan"))
+        self.TipeMouseLabel.setText(_translate("MainWindow", "Tipe Mouse"))
+        self.TipeMouseComboBox.setItemText(0, _translate("MainWindow", "Sekali"))
+        self.TipeMouseComboBox.setItemText(1, _translate("MainWindow", "Dua kali"))
+        self.groupBox_3.setTitle(_translate("MainWindow", "Perulangan"))
+        self.radioUlang.setText(_translate("MainWindow", "Ulang"))
+        self.radioUlangBerhenti.setText(_translate("MainWindow", "Ulang sampai berhenti"))
+        self.berapaKaliLabel.setText(_translate("MainWindow", "Kali"))
+        self.groupBox_4.setTitle(_translate("MainWindow", "Posisi"))
+        self.radioLokasiSama.setText(_translate("MainWindow", "Lokasi sama"))
+        self.TombolPilihLokasi.setText(_translate("MainWindow", "Pilih Lokasi"))
+        self.EditPosisiX.setText(_translate("MainWindow", "0"))
+        self.labelX.setText(_translate("MainWindow", "X"))
+        self.labelY.setText(_translate("MainWindow", "Y"))
+        self.EditPosisiY.setText(_translate("MainWindow", "0"))
+        self.TombolMulai.setText(_translate("MainWindow", "Start"))
+        self.TombolStop.setText(_translate("MainWindow", "Stop"))
+        self.TombolSettingHotkey.setText(_translate("MainWindow", "Setting Hotkey"))
+
+        self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
+        self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+
+    ui = WindowUtama(MainWindow)
+    ui.setupUi()
+
+    MainWindow.show()
+    sys.exit(app.exec_())

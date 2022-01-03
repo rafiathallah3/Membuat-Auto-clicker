@@ -1,7 +1,7 @@
 import sys, threading, time
 
 from pynput.keyboard import Key, Listener, KeyCode
-from pynput.mouse import Controller
+from pynput.mouse import Controller, Button
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class KeyMonitor(QtCore.QObject):
@@ -36,11 +36,10 @@ class MouseKlik(threading.Thread):
         while self.UlangSampaiBerhenti:
             time.sleep(self.delay)
             if not self.LokasiSama: self.mouseController.position = self.PosisiMouse
-            self.mouseController.click(self.tombol, 2 if self.tipeklik == "Dua kali" else 1)
+            self.mouseController.click(Button(self.tombol), 2 if self.tipeklik == "Dua kali" else 1)
 
     def stop(self):
         self.UlangSampaiBerhenti = False
-
 
 class WindowUtama():
     def __init__(self, MainWindow: QtWidgets.QMainWindow, MosController):
@@ -52,7 +51,7 @@ class WindowUtama():
         self.data = {
             "WaktuKlik": [0, 0, 0, .1], #Jam menit detik milidetik
             "Opsi": {
-                "TombolMouse": "Kiri",
+                "TombolMouse": (4, 2, 0),
                 "TipeMouse": "Sekali"
             },
             "Perulangan": {
@@ -85,7 +84,7 @@ class WindowUtama():
         self.data["WaktuKlik"][3] = float("."+str(self.data["WaktuKlik"][3]))
 
     def OpsiComboBox(self):
-        self.data["Opsi"]["TombolMouse"] = self.TombolMouseComboBox.currentText()
+        self.data["Opsi"]["TombolMouse"] = (4, 2, 0) if self.TombolMouseComboBox.currentText() == "Kiri" else (16, 8, 0)
         self.data["Opsi"]["TipeMouse"] = self.TipeMouseComboBox.currentText()
 
     def radioUlangValueChanged(self):

@@ -32,7 +32,7 @@ class WindowUtama():
                 "TipeMouse": "Sekali"
             },
             "Perulangan": {
-                "Diulang": True,
+                "DiulangSampaiBerhenti": True,
                 "BerapaKaliUlang": 1
             },
             "Posisi": {
@@ -54,6 +54,11 @@ class WindowUtama():
             hasil = DeteksiInput(v)
             self.data["WaktuKlik"][i] = hasil
             v.setText(hasil)
+
+    def OpsiComboBox(self):
+        self.data["Opsi"]["TombolMouse"] = self.TombolMouseComboBox.currentText()
+        self.data["Opsi"]["TipeMouse"] = self.TipeMouseComboBox.currentText()
+        print(self.data["Opsi"])
 
     def keyMonitorFunc(self, key):
         if key == Key.f7.value:
@@ -174,11 +179,11 @@ class WindowUtama():
         self.radioUlang = QtWidgets.QRadioButton(self.groupBox_3)
         self.radioUlang.setGeometry(QtCore.QRect(20, 30, 82, 17))
         self.radioUlang.setObjectName("radioUlang")
-        self.radioUlang.setChecked(True)
         
         self.radioUlangBerhenti = QtWidgets.QRadioButton(self.groupBox_3)
         self.radioUlangBerhenti.setGeometry(QtCore.QRect(20, 70, 161, 17))
         self.radioUlangBerhenti.setObjectName("radioUlangBerhenti")
+        self.radioUlangBerhenti.setChecked(True)
         
         self.berapaKaliUlang = QtWidgets.QSpinBox(self.groupBox_3)
         self.berapaKaliUlang.setGeometry(QtCore.QRect(100, 30, 42, 22))
@@ -306,6 +311,9 @@ class WindowUtama():
         self.waktuMenitInput.editingFinished.connect(self.selesaiInputWaktu)
         self.waktuDetikInput.editingFinished.connect(self.selesaiInputWaktu)
         self.waktuMilidetikInput.editingFinished.connect(self.selesaiInputWaktu)
+
+        self.TombolMouseComboBox.activated.connect(self.OpsiComboBox)
+        self.TipeMouseComboBox.activated.connect(self.OpsiComboBox)
 
         self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
         self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))

@@ -268,9 +268,9 @@ class WindowUtama():
         self.retranslateUi(self.MainWindow)
         QtCore.QMetaObject.connectSlotsByName(self.MainWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Auto Clicker"))
+        self.MainWindow.setWindowTitle(_translate("MainWindow", "Auto Clicker"))
         self.groupBox.setTitle(_translate("MainWindow", "Waktu Klik"))
         self.waktuJamInput.setText(_translate("MainWindow", "0"))
         self.waktuJamLabel.setText(_translate("MainWindow", "Jam"))

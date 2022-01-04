@@ -95,16 +95,26 @@ class WindowUtama():
         self.data["Posisi"]["PosisiLokasi"] = DeteksiInput([self.EditPosisiX, self.EditPosisiY])
 
     def MulaiAutoClicker(self, delay):
-        while self.data["Perulangan"]["DiulangSampaiBerhenti"]:
+        def Perulang():
             time.sleep(delay)
-            if not self.Mulai: break
 
             if not self.data["Posisi"]["LokasiSama"]: self.MosController.position = self.data["Posisi"]["PosisiLokasi"]
             self.MosController.click(Button(self.data["Opsi"]["TombolMouse"]), 2 if self.data["Opsi"]["TipeMouse"] == "Dua kali" else 1)
+
+        while self.data["Perulangan"]["DiulangSampaiBerhenti"]:
+            if not self.Mulai: break
+            Perulang()
+        else:
+            for _ in range(self.data["Perulangan"]["BerapaKaliUlang"]):
+                if not self.Mulai: break
+                Perulang()
+            self.Mulai = False
+                
         print("Stop clicker")
 
-    def KlikPilihLokasi(self):
-        self.AmbilLokasi = True
+    def GantiKeybind(self):
+        self.KeybindLabel.setText("Silahkan di tekan key")
+        self.TombolSettingHotkey.setText("Batal")
 
     def keyMonitorFunc(self, key):
         if key == Key.f6.value:
@@ -313,16 +323,24 @@ class WindowUtama():
         self.TombolStop.setFont(font)
         self.TombolStop.setObjectName("TombolStop")
         self.TombolStop.setEnabled(False)
-        
+
         font = QtGui.QFont()
         font.setFamily("Ebrima")
         font.setPointSize(12)
         self.TombolSettingHotkey = QtWidgets.QPushButton(self.centralwidget)
         self.TombolSettingHotkey.setGeometry(QtCore.QRect(20, 370, 241, 51))
         self.TombolSettingHotkey.setFont(font)
-        self.TombolSettingHotkey = QtWidgets.QPushButton(self.centralwidget)
-        self.TombolSettingHotkey.setGeometry(QtCore.QRect(20, 370, 241, 51))
         self.TombolSettingHotkey.setObjectName("TombolSettingHotkey")
+        
+        font = QtGui.QFont()
+        font.setFamily("Ebrima")
+        font.setPointSize(16)
+        self.KeybindLabel = QtWidgets.QLineEdit(self.centralwidget)
+        self.KeybindLabel.setGeometry(QtCore.QRect(310, 370, 241, 51))
+        self.KeybindLabel.setFont(font)
+        self.KeybindLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.KeybindLabel.setReadOnly(True)
+        self.KeybindLabel.setObjectName("KeybindLabel")
         
         self.MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(self.MainWindow)
@@ -368,7 +386,8 @@ class WindowUtama():
         self.EditPosisiY.setText(_translate("MainWindow", "0"))
         self.TombolMulai.setText(_translate("MainWindow", "Start"))
         self.TombolStop.setText(_translate("MainWindow", "Stop"))
-        self.TombolSettingHotkey.setText(_translate("MainWindow", "Setting Hotkey"))
+        self.TombolSettingHotkey.setText(_translate("MainWindow", "Ganti Start/Stop"))
+        self.KeybindLabel.setText(_translate("MainWindow", "F6"))
 
         self.waktuJamInput.editingFinished.connect(self.selesaiInputWaktu)
         self.waktuMenitInput.editingFinished.connect(self.selesaiInputWaktu)
@@ -385,7 +404,8 @@ class WindowUtama():
 
         self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
         self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))
-        self.TombolPilihLokasi.clicked.connect(self.KlikPilihLokasi)
+        self.TombolPilihLokasi.clicked.connect(lambda: setattr(self, "AmbilLokasi", True))
+        self.TombolSettingHotkey.clicked.connect(self.GantiKeybind)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

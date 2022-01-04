@@ -472,7 +472,7 @@
      <string>Stop</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="TombolMulai_2">
+   <widget class="QPushButton" name="TombolSettingHotkey">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -488,7 +488,32 @@
      </font>
     </property>
     <property name="text">
-     <string>Setting Hotkey</string>
+     <string>Ganti Start/Stop</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="KeybindLabel">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>370</y>
+      <width>241</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Ebrima</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>F6</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

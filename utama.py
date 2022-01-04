@@ -20,28 +20,6 @@ class KeyMonitor(QtCore.QObject):
     def start_monitoring(self):
         self.listener.start()
 
-class MouseKlik(threading.Thread):
-    def __init__(self, mouseController, **kwargs):
-        super(MouseKlik, self).__init__()
-        self.mouseController = mouseController
-        self.delay = kwargs["delay"]
-        self.tombol = kwargs["tombol"]
-        self.tipeklik = kwargs["tipeklik"]
-        self.UlangSampaiBerhenti = kwargs["UlangSampaiBerhenti"]
-        self.UlangBerapaKali = kwargs["UlangBerapaKali"]
-        self.LokasiSama = kwargs["LokasiSama"]
-        self.PosisiMouse = kwargs["PosisiMouse"]
-
-    def mulai(self):
-        print(f"Mulai!: {self.delay}")
-        while self.UlangSampaiBerhenti:
-            time.sleep(self.delay)
-            if not self.LokasiSama: self.mouseController.position = self.PosisiMouse
-            self.mouseController.click(Button(self.tombol), 2 if self.tipeklik == "Dua kali" else 1)
-
-    def stop(self):
-        self.UlangSampaiBerhenti = False
-
 class WindowUtama():
     def __init__(self, MainWindow: QtWidgets.QMainWindow, MosController):
         self.MainWindow = MainWindow
@@ -69,6 +47,8 @@ class WindowUtama():
         self.monitor.keyPressed.connect(self.keyMonitorFunc)
         self.monitor.start_monitoring()
 
+        print("Selesai init")
+
     def selesaiInputWaktu(self):
         def DeteksiInput(InputEdit: QtWidgets.QLineEdit) -> str:
             if not InputEdit.text() or not InputEdit.text().isdecimal(): return 0
@@ -82,7 +62,9 @@ class WindowUtama():
         self.data["WaktuKlik"][3] = 100 if self.data["WaktuKlik"][3] < 10 else self.data["WaktuKlik"][3]
         self.waktuMilidetikInput.setText(str(self.data["WaktuKlik"][3]))
 
-        self.data["WaktuKlik"][3] = float("."+str(self.data["WaktuKlik"][3]))
+        WaktuKlikTime = str(self.data["WaktuKlik"][3])
+        WaktuKlikTime = f'{"0" if WaktuKlikTime.count("0") < 2 else ""}{WaktuKlikTime}'
+        self.data["WaktuKlik"][3] = float("."+WaktuKlikTime)
 
     def OpsiComboBox(self):
         self.data["Opsi"]["TombolMouse"] = (4, 2, 0) if self.TombolMouseComboBox.currentText() == "Kiri" else (16, 8, 0)
@@ -112,8 +94,8 @@ class WindowUtama():
         print("Stop clicker")
 
     def keyMonitorFunc(self, key):
-        if key == Key.f7.value:
-            print("yes")
+        if key == Key.f6.value:
+            self.Mulai = not self.Mulai
 
     @property
     def Mulai(self):
@@ -128,28 +110,9 @@ class WindowUtama():
 
         if value:
             delay = self.data["WaktuKlik"][0]**60 + self.data["WaktuKlik"][1]*60 + self.data["WaktuKlik"][2] + self.data["WaktuKlik"][3]
-            tombol = self.data["Opsi"]["TombolMouse"]
-            tipeklik = self.data["Opsi"]["TipeMouse"]
-            UlangSampaiBerhenti = self.data["Perulangan"]["DiulangSampaiBerhenti"]
-            UlangBerapaKali = self.data["Perulangan"]["BerapaKaliUlang"]
-            LokasiSama = self.data["Posisi"]["LokasiSama"]
-            PosisiMouse = self.data["Posisi"]["PosisiLokasi"]
 
             x = threading.Thread(target=self.MulaiAutoClicker, args=(delay,))
-            # self.threadMouse = MouseKlik(
-            #     self.MosController,
-            #     delay=delay,
-            #     tombol=tombol,
-            #     tipeklik=tipeklik, 
-            #     UlangSampaiBerhenti=UlangSampaiBerhenti, 
-            #     UlangBerapaKali=UlangBerapaKali, 
-            #     LokasiSama=LokasiSama, 
-            #     PosisiMouse=PosisiMouse
-            # )
-            # self.threadMouse.start()
-            # self.threadMouse.mulai()
             x.start()
-            print("Mulai di main thread (?)")
 
     def setupUi(self):
         self.MainWindow.setObjectName("MainWindow")

@@ -1,24 +1,33 @@
 import sys, threading, time
 
-from pynput.keyboard import Key, Listener, KeyCode
-from pynput.mouse import Controller, Button
+from pynput.keyboard import Key, KeyCode, Listener as KeyboardListener
+from pynput.mouse import Controller, Button, Listener as MouseListnener
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class KeyMonitor(QtCore.QObject):
+#src: https://stackoverflow.com/questions/61859385/keypressevent-without-focus
+class KeyMouseMonitor(QtCore.QObject):
     keyPressed = QtCore.pyqtSignal(KeyCode)
+    clickPressed = QtCore.pyqtSignal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.listener = Listener(on_release=self.on_release)
+        self.Keyboardlistener = KeyboardListener(on_release=self.on_release)
+        self.Mouselistener = MouseListnener(on_click=self.on_click)
 
     def on_release(self, key):
         self.keyPressed.emit(key.value if hasattr(key, 'value') else key)
 
+    def on_click(self, x,y,button,pressed):
+        if not pressed and button == Button.left:
+            self.clickPressed.emit([x,y])
+
     def stop_monitoring(self):
-        self.listener.stop()
+        self.Keyboardlistener.stop()
+        self.Mouselistener.stop()
 
     def start_monitoring(self):
-        self.listener.start()
+        self.Keyboardlistener.start()
+        self.Mouselistener.start()
 
 class WindowUtama():
     def __init__(self, MainWindow: QtWidgets.QMainWindow, MosController):
@@ -27,6 +36,8 @@ class WindowUtama():
         self.threadMouse = None
 
         self._Mulai = False
+        self.AmbilLokasi = False
+
         self.data = {
             "WaktuKlik": [0, 0, 0, .1], #Jam menit detik milidetik
             "Opsi": {
@@ -43,11 +54,10 @@ class WindowUtama():
             }
         }
 
-        self.monitor = KeyMonitor()
+        self.monitor = KeyMouseMonitor()
         self.monitor.keyPressed.connect(self.keyMonitorFunc)
+        self.monitor.clickPressed.connect(self.klikMonitorFunc)
         self.monitor.start_monitoring()
-
-        print("Selesai init")
 
     def selesaiInputWaktu(self):
         def DeteksiInput(InputEdit: QtWidgets.QLineEdit) -> str:
@@ -93,9 +103,21 @@ class WindowUtama():
             self.MosController.click(Button(self.data["Opsi"]["TombolMouse"]), 2 if self.data["Opsi"]["TipeMouse"] == "Dua kali" else 1)
         print("Stop clicker")
 
+    def KlikPilihLokasi(self):
+        self.AmbilLokasi = True
+
     def keyMonitorFunc(self, key):
         if key == Key.f6.value:
             self.Mulai = not self.Mulai
+
+    def klikMonitorFunc(self, pos: list[int, int]):
+        if self.AmbilLokasi:
+            self.data["Posisi"]["PosisiLokasi"] = pos
+            
+            self.EditPosisiX.setText(str(pos[0]))
+            self.EditPosisiY.setText(str(pos[1]))
+            
+            self.AmbilLokasi = False
 
     @property
     def Mulai(self):
@@ -363,9 +385,9 @@ class WindowUtama():
 
         self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
         self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))
+        self.TombolPilihLokasi.clicked.connect(self.KlikPilihLokasi)
 
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     mosController = Controller()

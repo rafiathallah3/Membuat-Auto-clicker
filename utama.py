@@ -15,6 +15,7 @@ class KeyMouseMonitor(QtCore.QObject):
         self.Mouselistener = MouseListnener(on_click=self.on_click)
 
     def on_release(self, key):
+        #Masalah
         self.keyPressed.emit(key.value if hasattr(key, 'value') else key)
 
     def on_click(self, x,y,button,pressed):
@@ -36,7 +37,9 @@ class WindowUtama():
         self.threadMouse = None
 
         self._Mulai = False
+        self._ApakahGantiKeybind = False
         self.AmbilLokasi = False
+        self.Keybind = "F6"
 
         self.data = {
             "WaktuKlik": [0, 0, 0, .1], #Jam menit detik milidetik
@@ -112,11 +115,12 @@ class WindowUtama():
                 
         print("Stop clicker")
 
-    def GantiKeybind(self):
-        self.KeybindLabel.setText("Silahkan di tekan key")
-        self.TombolSettingHotkey.setText("Batal")
-
     def keyMonitorFunc(self, key):
+        print(key.from_char(key))
+        if self.ApakahGantiKeybind:
+            self.Keybind = key.value
+            self.ApakahGantiKeybind = False
+
         if key == Key.f6.value:
             self.Mulai = not self.Mulai
 
@@ -145,6 +149,17 @@ class WindowUtama():
 
             x = threading.Thread(target=self.MulaiAutoClicker, args=(delay,))
             x.start()
+
+    @property
+    def ApakahGantiKeybind(self):
+        return self._ApakahGantiKeybind
+
+    @ApakahGantiKeybind.setter
+    def ApakahGantiKeybind(self, value):
+        self._ApakahGantiKeybind = value
+
+        self.KeybindLabel.setText("Silahkan di tekan key" if value else self.Keybind)
+        self.TombolSettingHotkey.setText("Batal" if value else "Ganti Start/Stop")
 
     def setupUi(self):
         self.MainWindow.setObjectName("MainWindow")
@@ -405,7 +420,7 @@ class WindowUtama():
         self.TombolMulai.clicked.connect(lambda: setattr(self, "Mulai", True))
         self.TombolStop.clicked.connect(lambda: setattr(self, "Mulai", False))
         self.TombolPilihLokasi.clicked.connect(lambda: setattr(self, "AmbilLokasi", True))
-        self.TombolSettingHotkey.clicked.connect(self.GantiKeybind)
+        self.TombolSettingHotkey.clicked.connect(lambda: setattr(self, "ApakahGantiKeybind", not self.ApakahGantiKeybind))
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

@@ -33,6 +33,7 @@ class MouseKlik(threading.Thread):
         self.PosisiMouse = kwargs["PosisiMouse"]
 
     def mulai(self):
+        print(f"Mulai!: {self.delay}")
         while self.UlangSampaiBerhenti:
             time.sleep(self.delay)
             if not self.LokasiSama: self.mouseController.position = self.PosisiMouse
@@ -78,7 +79,7 @@ class WindowUtama():
             self.data["WaktuKlik"][i] = hasil
             v.setText(str(hasil))
 
-        self.data["WaktuKlik"][3] = 100 if self.data["WaktuKlik"][3] < 100 else self.data["WaktuKlik"][3]
+        self.data["WaktuKlik"][3] = 100 if self.data["WaktuKlik"][3] < 10 else self.data["WaktuKlik"][3]
         self.waktuMilidetikInput.setText(str(self.data["WaktuKlik"][3]))
 
         self.data["WaktuKlik"][3] = float("."+str(self.data["WaktuKlik"][3]))
@@ -101,6 +102,14 @@ class WindowUtama():
         self.data["Posisi"]["LokasiSama"] = self.radioLokasiSama.isChecked()
         self.data["Posisi"]["PosisiLokasi"] = DeteksiInput([self.EditPosisiX, self.EditPosisiY])
 
+    def MulaiAutoClicker(self, delay):
+        while self.data["Perulangan"]["DiulangSampaiBerhenti"]:
+            time.sleep(delay)
+            if not self.Mulai: break
+
+            if not self.data["Posisi"]["LokasiSama"]: self.MosController.position = self.data["Posisi"]["PosisiLokasi"]
+            self.MosController.click(Button(self.data["Opsi"]["TombolMouse"]), 2 if self.data["Opsi"]["TipeMouse"] == "Dua kali" else 1)
+        print("Stop clicker")
 
     def keyMonitorFunc(self, key):
         if key == Key.f7.value:
@@ -112,6 +121,8 @@ class WindowUtama():
 
     @Mulai.setter
     def Mulai(self, value):
+        self._Mulai = value
+        
         self.TombolMulai.setEnabled(not value)
         self.TombolStop.setEnabled(value)
 
@@ -124,24 +135,21 @@ class WindowUtama():
             LokasiSama = self.data["Posisi"]["LokasiSama"]
             PosisiMouse = self.data["Posisi"]["PosisiLokasi"]
 
-            self.threadMouse = MouseKlik(
-                self.MosController,
-                delay=delay,
-                tombol=tombol,
-                tipeklik=tipeklik, 
-                UlangSampaiBerhenti=UlangSampaiBerhenti, 
-                UlangBerapaKali=UlangBerapaKali, 
-                LokasiSama=LokasiSama, 
-                PosisiMouse=PosisiMouse
-            )
-            self.threadMouse.start()
-            self.threadMouse.mulai()
-        else:
-            if self.threadMouse is not None:
-                self.threadMouse.stop()
-                self.threadMouse = None
-
-        self._Mulai = value
+            x = threading.Thread(target=self.MulaiAutoClicker, args=(delay,))
+            # self.threadMouse = MouseKlik(
+            #     self.MosController,
+            #     delay=delay,
+            #     tombol=tombol,
+            #     tipeklik=tipeklik, 
+            #     UlangSampaiBerhenti=UlangSampaiBerhenti, 
+            #     UlangBerapaKali=UlangBerapaKali, 
+            #     LokasiSama=LokasiSama, 
+            #     PosisiMouse=PosisiMouse
+            # )
+            # self.threadMouse.start()
+            # self.threadMouse.mulai()
+            x.start()
+            print("Mulai di main thread (?)")
 
     def setupUi(self):
         self.MainWindow.setObjectName("MainWindow")

@@ -39,7 +39,7 @@ class WindowUtama():
         self._Mulai = False
         self._ApakahGantiKeybind = False
         self.AmbilLokasi = False
-        self.Keybind = "F6"
+        self.Keybind = {"Nama": "F6", "ValueKey": "F6"}
 
         self.data = {
             "WaktuKlik": [0, 0, 0, .1], #Jam menit detik milidetik
@@ -116,12 +116,17 @@ class WindowUtama():
         print("Stop clicker")
 
     def keyMonitorFunc(self, key):
-        if self.ApakahGantiKeybind:
-            self.Keybind = key.value
-            self.ApakahGantiKeybind = False
-
-        if key == Key.f6:
+        if key == self.Keybind["ValueKey"]:
             self.Mulai = not self.Mulai
+
+        if self.ApakahGantiKeybind:
+            self.Keybind = {
+                "Nama": str(key)[4:].capitalize() if isinstance(key, Key) else key.char,
+                "ValueKey": key
+            }
+
+            self.KeybindLabel.setText(self.Keybind["Nama"])
+            self.ApakahGantiKeybind = False
 
     def klikMonitorFunc(self, pos: list[int, int]):
         if self.AmbilLokasi:
@@ -157,7 +162,7 @@ class WindowUtama():
     def ApakahGantiKeybind(self, value):
         self._ApakahGantiKeybind = value
 
-        self.KeybindLabel.setText("Silahkan di tekan key" if value else self.Keybind)
+        self.KeybindLabel.setText("Silahkan di tekan key" if value else self.Keybind["Nama"])
         self.TombolSettingHotkey.setText("Batal" if value else "Ganti Start/Stop")
 
     def setupUi(self):

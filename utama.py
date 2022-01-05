@@ -6,7 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 #src: https://stackoverflow.com/questions/61859385/keypressevent-without-focus
 class KeyMouseMonitor(QtCore.QObject):
-    keyPressed = QtCore.pyqtSignal(KeyCode)
+    keyPressed = QtCore.pyqtSignal(object)
     clickPressed = QtCore.pyqtSignal(list)
 
     def __init__(self, parent=None):
@@ -16,7 +16,7 @@ class KeyMouseMonitor(QtCore.QObject):
 
     def on_release(self, key):
         #Masalah
-        self.keyPressed.emit(key.value if hasattr(key, 'value') else key)
+        self.keyPressed.emit(key)
 
     def on_click(self, x,y,button,pressed):
         if not pressed and button == Button.left:
@@ -116,12 +116,11 @@ class WindowUtama():
         print("Stop clicker")
 
     def keyMonitorFunc(self, key):
-        print(key.from_char(key))
         if self.ApakahGantiKeybind:
             self.Keybind = key.value
             self.ApakahGantiKeybind = False
 
-        if key == Key.f6.value:
+        if key == Key.f6:
             self.Mulai = not self.Mulai
 
     def klikMonitorFunc(self, pos: list[int, int]):
